@@ -1,0 +1,1 @@
+pub const DIVISOR: f32 = 255.;
