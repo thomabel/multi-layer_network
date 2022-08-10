@@ -2,14 +2,20 @@ use ndarray::prelude::*;
 use rand::{self, seq::SliceRandom};
 use crate::network::layer_size::LayerSize;
 use crate::network::multi_layer::MultiLayer;
-use crate::utility::print_data;
 use crate::utility::constants::*;
 
 /// Public
 pub enum EvaluateState { Train, Test }
 
 // Trains the network over a single epoch and returns the resulting confusion matrix.
-pub fn epoch(network: &mut MultiLayer, input: &Array2<f32>, targets: &Array1<String>, state: EvaluateState, print: bool) -> Array2<u32> {
+pub fn epoch(
+    network: &mut MultiLayer, 
+    input: &Array2<f32>, 
+    targets: &Array1<String>, 
+    state: EvaluateState, 
+    momentum: f32,
+    print: bool,
+) -> Array2<u32> {
     // Create confusion matrix and random index array.
     let mut confusion = Array2::<u32>::zeros((OUTPUT, OUTPUT));
     let input_random = create_random_index(targets.len());
@@ -35,7 +41,7 @@ pub fn epoch(network: &mut MultiLayer, input: &Array2<f32>, targets: &Array1<Str
                 // Find the error values and update the weights.
                 let target = target_array(target_str);
                 network.error(&target.view());
-                network.weight(&row, LEARN, MOMENTUM);
+                network.weight(&row, LEARN, momentum);
             }
             EvaluateState::Test => {
                 // Continue the testing.
@@ -47,23 +53,22 @@ pub fn epoch(network: &mut MultiLayer, input: &Array2<f32>, targets: &Array1<Str
 }
 
 // Create the network using some predefined layer sizes.
-pub fn create_network() -> MultiLayer {
+pub fn create_network(hidden: usize) -> MultiLayer {
     let size = [
-        LayerSize::new(HIDDEN, INPUT, STORAGE),
-        LayerSize::new(OUTPUT, HIDDEN, STORAGE),
+        LayerSize::new(hidden, INPUT, STORAGE),
+        LayerSize::new(OUTPUT, hidden, STORAGE),
     ];
     MultiLayer::new(&size[..], LOW, HIGH)
 }
 
-// Print the confusion matrix and accuracy.
-pub fn print_confusion(confusion: &Array2<u32>) {
-    println!();
-    print_data::_print_matrix(&confusion.view(), "CONFUSION");
-    print_data::_print_total_error(confusion.diag().sum(), confusion.sum());
-}
-
 
 /// Private
+
+// 
+fn create_random_index_fraction(size: usize, fraction: f32) {
+
+}
+
 // Creates a vector of indicies for randomizing the data.
 fn create_random_index(size: usize) -> Array1<usize> {
     let mut vec = Vec::with_capacity(size);
