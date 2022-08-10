@@ -26,7 +26,7 @@ fn main() {
     let input;
     match temp {
         Ok(mut o) => {
-            o.0 /= DIVISOR;
+            //o.0 /= DIVISOR;
             input = o;
         }
         Err(e) => {
@@ -34,7 +34,8 @@ fn main() {
             return;
         }
     }
-    
+    _print_matrix(&input.0.view(), "INPUT");
+
     let network = train(&input);
 }
 
@@ -44,6 +45,10 @@ fn train(input: &Input) -> Network {
         LayerSize::new(OUTPUT, HIDDEN, STORAGE),
     ];
     let mut network = Network::new(&size[..]);
+
+    for i in input.0.rows() {
+        network.output(&i);
+    }
 
     network
 }

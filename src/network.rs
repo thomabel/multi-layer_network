@@ -13,9 +13,13 @@ impl Network {
         for l in size {
             layer.push(Layer::new(*l));
         }
+        for l in &mut layer {
+            l._set_weights(0.1);
+        }
         Network { layer }
     }
 
+    // 
     pub fn output(&mut self, input: &Vector) {
         let mut iter = self.layer.iter_mut();
         let mut layer_prev = iter.next().unwrap();

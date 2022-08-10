@@ -7,7 +7,7 @@ pub fn read(path: &str) -> Result<(Array2<f32>, Array1<String>), Box<dyn Error>>
     let mut output = Vec::new();
     let mut target = Vec::new();
     let mut rows = 0;
-    let columns = reader.records().next().unwrap().unwrap().len();
+    let columns = reader.headers()?.len() - 1;
 
     for r in reader.records() {
         let entry = r?;
@@ -27,7 +27,7 @@ pub fn read(path: &str) -> Result<(Array2<f32>, Array1<String>), Box<dyn Error>>
     }
     
     let output = 
-        Array2::<f32>::from_shape_vec((columns, rows), output)?;
+        Array2::<f32>::from_shape_vec((rows, columns), output)?;
     let target = 
         Array1::<String>::from_shape_vec(rows, target)?;
     Ok( (output, target) )

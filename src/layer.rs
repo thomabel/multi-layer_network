@@ -24,6 +24,12 @@ impl Layer {
         Layer { size, output, error, weight, delta }
     }
 
+    pub fn _set_weights(&mut self, value: f32) {
+        for w in &mut self.weight {
+            *w = value;
+        }
+    }
+
     // Sigmoid function + derivative
     fn sigmoid(input: f32) -> f32 {
         1.0 / (1.0 + f32::exp(-input))
@@ -35,6 +41,7 @@ impl Layer {
     pub fn output_vector(&self) -> &Vector {
         &self.output
     }
+    
     // 
     pub fn output(&mut self, input: &VectorView) {
         // For each output node.
