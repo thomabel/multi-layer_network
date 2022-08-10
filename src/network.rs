@@ -30,4 +30,29 @@ impl Network {
             layer_prev = layer;
         }
     }
+
+    // 
+    pub fn error(&mut self, target: f32) {
+        let mut iter = self.layer.iter_mut().rev();
+        let mut layer_prev = iter.next().unwrap();
+        layer_prev.error_output(target);
+        
+        for layer in iter {
+            layer.error_layer(layer_prev);
+            layer_prev = layer;
+        }
+    }
+
+    // 
+    pub fn weight(&mut self, input: &Vector, learn_rate: f32, momentum: f32) {
+        let mut iter = self.layer.iter_mut();
+        let mut layer_prev = iter.next().unwrap();
+        layer_prev.weight(input, learn_rate, momentum);
+        
+        for layer in iter {
+            layer.weight(&layer_prev.output_vector().view(), learn_rate, momentum);
+            layer_prev = layer;
+        }
+    }
+
 }

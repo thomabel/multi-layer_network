@@ -37,6 +37,8 @@ fn main() {
     _print_matrix(&input.0.view(), "INPUT");
 
     let network = train(&input);
+
+    println!("End program.\n");
 }
 
 fn train(input: &Input) -> Network {
@@ -46,8 +48,21 @@ fn train(input: &Input) -> Network {
     ];
     let mut network = Network::new(&size[..]);
 
-    for i in input.0.rows() {
-        network.output(&i);
+    for i in 0..input.1.len() {
+        let row = input.0.row(i);
+        let target = input.1[i].parse::<f32>().unwrap();
+        
+        println!("Output");
+        network.output(&row);
+        println!();
+
+        println!("Error");
+        network.error(target);
+        println!();
+
+        println!("Weight");
+        network.weight(&row, LEARN_RATE, MOMENTUM);
+        println!();
     }
 
     network
