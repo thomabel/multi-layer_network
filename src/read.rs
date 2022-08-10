@@ -2,16 +2,18 @@ use ndarray::prelude::*;
 use csv::Reader;
 use std::error::Error;
 
-pub fn read(path: &str) -> Result<Array2<f32>, Box<dyn Error>> {
+pub fn read(path: &str) -> Result<(Array2<f32>, Array1<String>), Box<dyn Error>> {
     let mut reader = Reader::from_path(path)?;
     let mut output = Vec::new();
+    let mut target = Vec::new();
     let mut rows = 0;
     let columns = reader.records().next().unwrap().unwrap().len();
 
     for r in reader.records() {
         let entry = r?;
-        for e in entry.into_iter() {
-            let parse = e.parse::<f32>();
+        target.push(entry[0].to_string());
+        for e in 1..entry.len() {
+            let parse = entry[e].parse::<f32>();
             match parse {
                 Ok(o) => {
                     output.push(o);
@@ -23,5 +25,10 @@ pub fn read(path: &str) -> Result<Array2<f32>, Box<dyn Error>> {
         }
         rows += 1;
     }
-    Ok(Array2::<f32>::from_shape_vec((columns, rows), output)?)
+    
+    let output = 
+        Array2::<f32>::from_shape_vec((columns, rows), output)?;
+    let target = 
+        Array1::<String>::from_shape_vec(rows, target)?;
+    Ok( (output, target) )
 }

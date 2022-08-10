@@ -7,27 +7,45 @@ Machine Learning
 mod read;
 mod constants;
 mod print_data;
+mod layer_size;
+mod layer;
+mod network;
 
 use std::error::Error;
+use layer_size::LayerSize;
 use ndarray::prelude::*;
+use network::Network;
 use print_data::*;
 use crate::constants::*;
 use rand::{self, seq::SliceRandom};
+
+type Input = (Array2<f32>, Array1<String>);
 
 fn main() {
     let temp = read();
     let input;
     match temp {
         Ok(mut o) => {
-            input = o/DIVISOR;
+            o.0 /= DIVISOR;
+            input = o;
         }
         Err(e) => {
             println!("{}", e);
             return;
         }
     }
-    _print_matrix(&input.view(), "INPUT")
+    
+    let network = train(&input);
+}
 
+fn train(input: &Input) -> Network {
+    let size = [
+        LayerSize::new(HIDDEN, INPUT, STORAGE),
+        LayerSize::new(OUTPUT, HIDDEN, STORAGE),
+    ];
+    let mut network = Network::new(&size[..]);
+
+    network
 }
 
 fn random_index(size: usize) -> Vec<usize> {
@@ -39,8 +57,8 @@ fn random_index(size: usize) -> Vec<usize> {
     vec
 }
 
-fn read() -> Result<Array2<f32>, Box<dyn Error>> {
-    let path_index = 0;
+fn read() -> Result<Input, Box<dyn Error>> {
+    let path_index = 3;
     let path = [
         "./data/mnist_test_short.csv",
         "./data/mnist_test.csv",
