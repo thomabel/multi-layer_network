@@ -1,5 +1,6 @@
 
 use ndarray::prelude::*;
+use rand::Rng;
 use crate::layer_size::LayerSize;
 
 type Vector = Array1<f32>;
@@ -24,7 +25,16 @@ impl Layer {
         Layer { size, output, error, weight, delta }
     }
 
-    pub fn _set_weights(&mut self, value: f32) {
+    // Weight Setters
+    pub fn weights_randomize(&mut self, low: f32, high: f32) {
+        let distr = rand::distributions::Uniform::new_inclusive(low, high);
+        let mut rng = rand::thread_rng();
+
+        for w in &mut self.weight {
+            *w = rng.sample(distr);
+        }
+    }
+    pub fn _weights_set(&mut self, value: f32) {
         for w in &mut self.weight {
             *w = value;
         }
@@ -38,6 +48,7 @@ impl Layer {
         input * (1.0 - input) * factor
     }
 
+    // Getters
     pub fn output_vector(&self) -> &Vector {
         &self.output
     }

@@ -8,13 +8,14 @@ pub struct Network {
     layer: Vec<Layer>,
 }
 impl Network {
-    pub fn new(size: &[LayerSize]) -> Network {
+    pub fn new(size: &[LayerSize], low: f32, high: f32) -> Network {
         let mut layer = Vec::with_capacity(size.len());
         for l in size {
             layer.push(Layer::new(*l));
         }
         for l in &mut layer {
-            l._set_weights(0.1);
+            //l._weights_set(0.1);
+            l.weights_randomize(low, high);
         }
         Network { layer }
     }
