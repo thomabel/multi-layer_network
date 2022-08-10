@@ -3,15 +3,12 @@ Thomas Abel
 2022-08-09
 Machine Learning
 */
-
-mod read;
-mod constants;
-mod print_data;
+mod utility;
 mod network;
 
 use std::error::Error;
 use ndarray::prelude::*;
-use crate::constants::*;
+use crate::utility::constants::*;
 use crate::network::train_test::*;
 
 type Input = (Array2<f32>, Array1<String>);
@@ -26,7 +23,8 @@ fn read() -> Result<Input, Box<dyn Error>> {
         "./data/test.csv",
     ];
     print!("Reading data, please be patient... ");
-    let result = read::read(path[index]);
+    let result
+        = utility::read::read(path[index]);
     println!("Done.");
     result
 }

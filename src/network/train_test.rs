@@ -1,9 +1,9 @@
 use ndarray::prelude::*;
 use rand::{self, seq::SliceRandom};
-use crate::print_data;
-use crate::constants::*;
 use crate::network::layer_size::LayerSize;
 use crate::network::multi_layer::MultiLayer;
+use crate::utility::print_data;
+use crate::utility::constants::*;
 
 /// Public
 // Trains the network over a single epoch and returns the resulting confusion matrix.
