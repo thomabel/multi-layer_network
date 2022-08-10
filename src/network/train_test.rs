@@ -6,8 +6,10 @@ use crate::utility::print_data;
 use crate::utility::constants::*;
 
 /// Public
+pub enum EvaluateState { Train, Test }
+
 // Trains the network over a single epoch and returns the resulting confusion matrix.
-pub fn train_epoch(network: &mut MultiLayer, input: &Array2<f32>, targets: &Array1<String>, ) -> Array2<u32> {
+pub fn epoch(network: &mut MultiLayer, input: &Array2<f32>, targets: &Array1<String>, state: EvaluateState, print: bool) -> Array2<u32> {
     // Create confusion matrix and random index array.
     let mut confusion = Array2::<u32>::zeros((OUTPUT, OUTPUT));
     let input_random = create_random_index(targets.len());
@@ -16,7 +18,7 @@ pub fn train_epoch(network: &mut MultiLayer, input: &Array2<f32>, targets: &Arra
     // Completing this is considered 1 epoch.
     for i in 0..targets.len() {
         // Set-up
-        print!("{:>7}: ", i);
+        if print { print!("{:>7}: ", i); }
         let index = input_random[i];
         let row = input.row(index);
         let output = network.output(&row);
@@ -24,14 +26,21 @@ pub fn train_epoch(network: &mut MultiLayer, input: &Array2<f32>, targets: &Arra
         // Printing things
         let target_str = &targets[index];
         let predict_str = &classify(&output);
-        println!("[ {} ] => {}", target_str, predict_str);
+        if print { println!("[ {} ] => {}", target_str, predict_str); }
         // Update the confusion matrix
         confusion[[class_to_index(target_str).unwrap(), class_to_index(predict_str).unwrap()]] += 1;
         
-        // Find the error values and update the weights.
-        let target = target_array(target_str);
-        network.error(&target.view());
-        network.weight(&row, LEARN, MOMENTUM);
+        match state {
+            EvaluateState::Train => {
+                // Find the error values and update the weights.
+                let target = target_array(target_str);
+                network.error(&target.view());
+                network.weight(&row, LEARN, MOMENTUM);
+            }
+            EvaluateState::Test => {
+                // Continue the testing.
+            }
+        }
     }
 
     confusion
