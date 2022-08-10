@@ -48,13 +48,17 @@ fn train(input: &Input) -> Network {
     ];
     let mut network = Network::new(&size[..]);
 
+    // Feed each input into the network and update the weights.
     for i in 0..input.1.len() {
         let row = input.0.row(i);
         let target = input.1[i].parse::<f32>().unwrap();
         
         println!("Output");
-        network.output(&row);
+        let output = 
+            network.output(&row);
         println!();
+
+        let class = classify(&output);
 
         println!("Error");
         network.error(target);
@@ -66,6 +70,20 @@ fn train(input: &Input) -> Network {
     }
 
     network
+}
+
+fn classify(output: &ArrayView1<f32>) -> String {
+    let mut index = 0;
+    let mut value = 0.;
+    let len = output.len();
+    for i in 0..len {
+        if output[i] > value {
+            index = i;
+            value = output[i];
+        }
+    }
+
+    CLASS[index].to_string()
 }
 
 fn random_index(size: usize) -> Vec<usize> {

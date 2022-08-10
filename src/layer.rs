@@ -42,7 +42,7 @@ impl Layer {
         &self.output
     }
 
-    // 
+    // Given some input vector, get output values for each node.
     pub fn output(&mut self, input: &VectorView) {
         // For each output node.
         for j in 0..self.size.output {
@@ -83,7 +83,7 @@ impl Layer {
         println!();
     }
 
-    // 
+    // Update weights based on error values.
     pub fn weight(&mut self, input: &VectorView, learn_rate: f32, momentum: f32) {
         // For each output node.
         for k in 0..self.size.output {

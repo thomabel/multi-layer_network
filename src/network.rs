@@ -19,8 +19,8 @@ impl Network {
         Network { layer }
     }
 
-    // 
-    pub fn output(&mut self, input: &Vector) {
+    // OUTPUT
+    pub fn output(&mut self, input: &Vector) -> Vector {
         let mut iter = self.layer.iter_mut();
         let mut layer_prev = iter.next().unwrap();
         layer_prev.output(input);
@@ -29,9 +29,11 @@ impl Network {
             layer.output(&layer_prev.output_vector().view());
             layer_prev = layer;
         }
+
+        layer_prev.output_vector().view()
     }
 
-    // 
+    // ERROR
     pub fn error(&mut self, target: f32) {
         let mut iter = self.layer.iter_mut().rev();
         let mut layer_prev = iter.next().unwrap();
@@ -43,7 +45,7 @@ impl Network {
         }
     }
 
-    // 
+    // WEIGHT
     pub fn weight(&mut self, input: &Vector, learn_rate: f32, momentum: f32) {
         let mut iter = self.layer.iter_mut();
         let mut layer_prev = iter.next().unwrap();
