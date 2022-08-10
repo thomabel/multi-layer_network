@@ -1,6 +1,6 @@
-pub const OUTPUT:   usize   = 1;
-pub const HIDDEN:   usize   = 2;
-pub const INPUT:    usize   = 2;
+pub const OUTPUT:   usize   = 10;
+pub const HIDDEN:   usize   = 20;
+pub const INPUT:    usize   = 784;
 pub const STORAGE:  usize   = 1;
 
 pub const DIVISOR:  f32     = 255.;

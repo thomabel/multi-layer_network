@@ -21,12 +21,14 @@ use rand::{self, seq::SliceRandom};
 
 type Input = (Array2<f32>, Array1<String>);
 
+// MAIN
 fn main() {
     let temp = read();
     let input;
     match temp {
         Ok(mut o) => {
-            //o.0 /= DIVISOR;
+            println!("Read successful.");
+            o.0 /= DIVISOR;
             input = o;
         }
         Err(e) => {
@@ -34,58 +36,77 @@ fn main() {
             return;
         }
     }
-    _print_matrix(&input.0.view(), "INPUT");
+    //_print_matrix(&input.0.view(), "INPUT");
 
     let network = train(&input);
 
     println!("End program.\n");
 }
 
-fn train(input: &Input) -> Network {
+fn train(input_raw: &Input) -> Network {
     let size = [
         LayerSize::new(HIDDEN, INPUT, STORAGE),
         LayerSize::new(OUTPUT, HIDDEN, STORAGE),
     ];
     let mut network = Network::new(&size[..]);
+    let input = &input_raw.0;
+    let targets = &input_raw.1;
 
     // Feed each input into the network and update the weights.
-    for i in 0..input.1.len() {
-        let row = input.0.row(i);
-        let target = input.1[i].parse::<f32>().unwrap();
+    for i in 0..targets.len() {
+        let row = input.row(i);
         
-        println!("Output");
-        let output = 
-            network.output(&row);
-        println!();
+        //println!("Output");
+        let output = network.output(&row);
+        //println!();
+            
+        //let target = input.1[i].parse::<f32>().unwrap();
+        let target_str = &targets[i];
+        let class_str = classify(&output);
+        let target = target_array(target_str, &class_str);
+        println!("Prediction: {} from {}", class_str, target_str);
 
-        let class = classify(&output);
+        //println!("Error");
+        network.error(&target.view());
+        //println!();
 
-        println!("Error");
-        network.error(target);
-        println!();
-
-        println!("Weight");
+        //println!("Weight");
         network.weight(&row, LEARN_RATE, MOMENTUM);
-        println!();
+        //println!();
     }
 
     network
 }
 
+
+// Returns the target value needed for error calculation.
+fn target_array(target: &str, output: &str) -> Array1<f32> {
+    let mut target_arr = Array1::<f32>::from_elem(OUTPUT, 0.1);
+    for i in 0..OUTPUT {
+        if CLASS[i] == target && target == output {
+            target_arr[i] = 0.9;
+        }
+    }
+    target_arr
+}
+
+// Finds the class that the model predicted.
 fn classify(output: &ArrayView1<f32>) -> String {
     let mut index = 0;
     let mut value = 0.;
     let len = output.len();
     for i in 0..len {
+        print!("{}, ", output[i]);
         if output[i] > value {
             index = i;
             value = output[i];
         }
     }
-
+    println!();
     CLASS[index].to_string()
 }
 
+// Creates a vector of indicies for randomizing the data.
 fn random_index(size: usize) -> Vec<usize> {
     let mut vec = Vec::with_capacity(size);
     for i in 0..size {
@@ -95,8 +116,9 @@ fn random_index(size: usize) -> Vec<usize> {
     vec
 }
 
+// Reads the data file.
 fn read() -> Result<Input, Box<dyn Error>> {
-    let path_index = 3;
+    let path_index = 0;
     let path = [
         "./data/mnist_test_short.csv",
         "./data/mnist_test.csv",

@@ -58,18 +58,18 @@ impl Layer {
             output = Layer::sigmoid(output);
             self.output[j] = output;
 
-            print!("{}, ", self.output[j]);
+            //print!("{}, ", self.output[j]);
         }
-        println!();
+        //println!();
     }
 
     // Error functions
-    pub fn error_output(&mut self, target: f32) {
+    pub fn error_output(&mut self, target: &VectorView) {
         for k in 0..self.size.output {
-            self.error[k] = Layer::sigmoid_derivative(self.output[k], target - self.output[k]);
-            print!("{}, ", self.error[k]);
+            self.error[k] = Layer::sigmoid_derivative(self.output[k], target[k] - self.output[k]);
+            //print!("{}, ", self.error[k]);
         }
-        println!();
+        //println!();
     }
     pub fn error_layer(&mut self, prev_layer: &Layer) {
         for j in 0..self.size.output {
@@ -78,9 +78,9 @@ impl Layer {
                 factor += prev_layer.weight[[k, j]] * prev_layer.error[k];
             }
             self.error[j] = Layer::sigmoid_derivative(self.output[j], factor);
-            print!("{}, ", self.error[j]);
+            //print!("{}, ", self.error[j]);
         }
-        println!();
+        //println!();
     }
 
     // Update weights based on error values.
@@ -91,16 +91,14 @@ impl Layer {
                 let delta = learn_rate * self.error[k] * input[j] + momentum * self.delta[[k, j]];
                 self.weight[[k, j]] += delta;
                 self.delta[[k, j]] = delta;
-                print!("{}, ", self.weight[[k, j]]);
+                //print!("{}, ", self.weight[[k, j]]);
             }
             // Bias
             let j = self.size.input;
             let delta = learn_rate * self.error[k] * 1.0 + momentum * self.delta[[k, j]];
             self.weight[[k, j]] += delta;
             self.delta[[k, j]] = delta;
-            print!("{}, ", self.weight[[k, j]]);
-
-            println!();
+            //print!("{} \n", self.weight[[k, j]]);
         }
     }
 

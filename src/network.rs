@@ -34,7 +34,7 @@ impl Network {
     }
 
     // ERROR
-    pub fn error(&mut self, target: f32) {
+    pub fn error(&mut self, target: &Vector) {
         let mut iter = self.layer.iter_mut().rev();
         let mut layer_prev = iter.next().unwrap();
         layer_prev.error_output(target);
