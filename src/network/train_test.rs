@@ -2,12 +2,12 @@ use ndarray::prelude::*;
 use rand::{self, seq::SliceRandom};
 use crate::print_data;
 use crate::constants::*;
-use crate::layer_size::LayerSize;
-use crate::network::Network;
+use crate::network::layer_size::LayerSize;
+use crate::network::multi_layer::MultiLayer;
 
 /// Public
 // Trains the network over a single epoch and returns the resulting confusion matrix.
-pub fn train_epoch(network: &mut Network, input: &Array2<f32>, targets: &Array1<String>, ) -> Array2<u32> {
+pub fn train_epoch(network: &mut MultiLayer, input: &Array2<f32>, targets: &Array1<String>, ) -> Array2<u32> {
     // Create confusion matrix and random index array.
     let mut confusion = Array2::<u32>::zeros((OUTPUT, OUTPUT));
     let input_random = create_random_index(targets.len());
@@ -38,12 +38,12 @@ pub fn train_epoch(network: &mut Network, input: &Array2<f32>, targets: &Array1<
 }
 
 // Create the network using some predefined layer sizes.
-pub fn create_network() -> Network {
+pub fn create_network() -> MultiLayer {
     let size = [
         LayerSize::new(HIDDEN, INPUT, STORAGE),
         LayerSize::new(OUTPUT, HIDDEN, STORAGE),
     ];
-    Network::new(&size[..], LOW, HIGH)
+    MultiLayer::new(&size[..], LOW, HIGH)
 }
 
 // Print the confusion matrix and accuracy.
@@ -84,6 +84,7 @@ fn classify(output: &ArrayView1<f32>) -> String {
 
 // Converts a class to an index value.
 fn class_to_index(target: &str) -> Result<usize, &str> {
+    //for (i, <item>) in CLASS.iter().enumerate().take(OUTPUT) {}
     for i in 0..OUTPUT {
         if target == CLASS[i] {
             return Ok(i);

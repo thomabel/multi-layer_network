@@ -7,14 +7,12 @@ Machine Learning
 mod read;
 mod constants;
 mod print_data;
-mod layer_size;
-mod layer;
 mod network;
-mod train_test;
 
 use std::error::Error;
 use ndarray::prelude::*;
-use crate::{constants::*, train_test::*};
+use crate::constants::*;
+use crate::network::train_test::*;
 
 type Input = (Array2<f32>, Array1<String>);
 
@@ -58,5 +56,3 @@ fn main() {
     // End message.
     println!("Ending Session.");
 }
-
-

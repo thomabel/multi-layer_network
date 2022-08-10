@@ -1,7 +1,7 @@
 
 use ndarray::prelude::*;
 use rand::Rng;
-use crate::layer_size::LayerSize;
+use crate::network::layer_size::LayerSize;
 
 type Vector = Array1<f32>;
 type VectorView<'a> = ArrayView1<'a, f32>;
