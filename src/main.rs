@@ -8,9 +8,10 @@ mod network;
 
 use std::error::Error;
 use ndarray::prelude::*;
-use crate::network::train_test::*;
 use crate::utility::constants::*;
+use crate::network::train_test;
 use crate::utility::read;
+use crate::utility::epoch;
 
 type Matrix = Array2<f32>;
 type Target = Array1<String>;
@@ -35,10 +36,10 @@ fn main() {
     
     // Create the network and data storage.
     let hidden = HIDDEN[2];
-    let mut network = create_network(INPUT, hidden, OUTPUT, LOW, HIGH);
-    let mut info = EpochInfo {
+    let mut network = train_test::create_network(INPUT, hidden, OUTPUT, LOW, HIGH);
+    let mut info = epoch::Info {
         epoch: EPOCH,
-        state: EvaluateState::Train, 
+        state: train_test::EvaluateState::Train, 
         learn_rate: LEARN, 
         momentum: MOMENTUM[0], 
         fraction: TRAIN[0], 
@@ -46,7 +47,7 @@ fn main() {
     };
 
     // Experiment 1: Hidden Nodes
-    epoch_set(&mut network, input_train, input_test, &CLASS, &mut info);
+    train_test::epoch_set(&mut network, input_train, input_test, &CLASS, &mut info);
 
     // Experiment 2: Momentum
 

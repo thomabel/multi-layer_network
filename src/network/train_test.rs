@@ -4,38 +4,18 @@ use rand::{self, seq::SliceRandom};
 use crate::Input;
 use crate::network::layer_size::LayerSize;
 use crate::network::multi_layer::MultiLayer;
+use crate::utility::epoch::{Info, Results};
 use crate::utility::print_data;
 
 /// Public
 pub enum EvaluateState { Train, Test }
-
-pub struct EpochInfo {
-    pub epoch: usize,
-    pub state: EvaluateState, 
-    pub learn_rate: f32,
-    pub momentum: f32,
-    pub fraction: f32,
-    pub print: bool,
-}
-
-pub struct Results {
-    pub confusion: Option<Array2<u32>>,
-    pub accuracy: Array1<f32>,
-}
-impl Results {
-    pub fn new(epochs: usize) -> Results {
-        let confusion = None;
-        let accuracy = Array1::<f32>::zeros(epochs);
-        Results {confusion, accuracy}
-    }
-}
 // Trains and tests a network using one set of parameters.
 pub fn epoch_set(
     network: &mut MultiLayer, 
     input_train: Input, 
     input_test: Input, 
     classes: &[&str],
-    info: &mut EpochInfo) -> (Results, Results)
+    info: &mut Info) -> (Results, Results)
 {
     // Results needed for final evaluation of model.
     let mut train = Results::new(info.epoch);
@@ -64,7 +44,7 @@ pub fn epoch_set(
 }
 
 // Trains the network over a single epoch and returns the resulting confusion matrix.
-pub fn epoch(network: &mut MultiLayer, input: &Array2<f32>, target: &Array1<String>, classes: &[&str], info: &EpochInfo) -> Array2<u32> {
+pub fn epoch(network: &mut MultiLayer, input: &Array2<f32>, target: &Array1<String>, classes: &[&str], info: &Info) -> Array2<u32> {
     // Create confusion matrix and random index array.
     let output = classes.len();
     let mut confusion = Array2::<u32>::zeros((output, output));
