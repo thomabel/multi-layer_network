@@ -1,47 +1,98 @@
 use ndarray::prelude::*;
+use rand::thread_rng;
 use rand::{self, seq::SliceRandom};
+use crate::Input;
 use crate::network::layer_size::LayerSize;
 use crate::network::multi_layer::MultiLayer;
-use crate::utility::constants::*;
+use crate::utility::print_data;
 
 /// Public
 pub enum EvaluateState { Train, Test }
 
-// Trains the network over a single epoch and returns the resulting confusion matrix.
-pub fn epoch(
+pub struct EpochInfo {
+    pub epoch: usize,
+    pub state: EvaluateState, 
+    pub learn_rate: f32,
+    pub momentum: f32,
+    pub fraction: f32,
+    pub print: bool,
+}
+
+pub struct Results {
+    pub confusion: Option<Array2<u32>>,
+    pub accuracy: Array1<f32>,
+}
+impl Results {
+    pub fn new(epochs: usize) -> Results {
+        let confusion = None;
+        let accuracy = Array1::<f32>::zeros(epochs);
+        Results {confusion, accuracy}
+    }
+}
+// Trains and tests a network using one set of parameters.
+pub fn epoch_set(
     network: &mut MultiLayer, 
-    input: &Array2<f32>, 
-    targets: &Array1<String>, 
-    state: EvaluateState, 
-    momentum: f32,
-    print: bool,
-) -> Array2<u32> {
+    input_train: Input, 
+    input_test: Input, 
+    classes: &[&str],
+    info: &mut EpochInfo) -> (Results, Results)
+{
+    // Results needed for final evaluation of model.
+    let mut train = Results::new(info.epoch);
+    let mut test = Results::new(info.epoch);
+
+    // Train and test the network over a number of epochs.
+    for e in 0..info.epoch {
+        println!("EPOCH: {}", e);
+
+        // TRAIN
+        info.state = EvaluateState::Train;
+        train.confusion = Some(epoch(network, 
+                &input_train.0, &input_train.1, 
+                classes, info));
+        train.accuracy[e] = print_confusion(train.confusion.as_ref().unwrap());
+
+        // TEST
+        info.state = EvaluateState::Test;
+        test.confusion = Some(epoch(network, 
+                &input_test.0, &input_test.1, 
+                classes, info));
+        test.accuracy[e] = print_confusion(test.confusion.as_ref().unwrap());
+    }
+
+    (train, test)
+}
+
+// Trains the network over a single epoch and returns the resulting confusion matrix.
+pub fn epoch(network: &mut MultiLayer, input: &Array2<f32>, target: &Array1<String>, classes: &[&str], info: &EpochInfo) -> Array2<u32> {
     // Create confusion matrix and random index array.
-    let mut confusion = Array2::<u32>::zeros((OUTPUT, OUTPUT));
-    let input_random = create_random_index(targets.len());
+    let output = classes.len();
+    let mut confusion = Array2::<u32>::zeros((output, output));
+    //let input_random = create_random_index(target.len());
+    let input_random = create_random_index_fraction(target, classes, info.fraction);
 
     // Feed each input into the network and update the weights.
     // Completing this is considered 1 epoch.
-    for i in 0..targets.len() {
+    for i in 0..target.len() {
         // Set-up
-        if print { print!("{:>7}: ", i); }
+        if info.print { print!("{:>7}: ", i); }
         let index = input_random[i];
         let row = input.row(index);
         let output = network.output(&row);
         
         // Printing things
-        let target_str = &targets[index];
-        let predict_str = &classify(&output);
-        if print { println!("[ {} ] => {}", target_str, predict_str); }
+        let target_str = &target[index];
+        let predict_str = &classify(&output, classes);
+        if info.print { println!("[ {} ] => {}", target_str, predict_str); }
         // Update the confusion matrix
-        confusion[[class_to_index(target_str).unwrap(), class_to_index(predict_str).unwrap()]] += 1;
+        confusion[[class_to_index(target_str, classes).unwrap(), class_to_index(predict_str, classes).unwrap()]] += 1;
         
-        match state {
+        match info.state {
             EvaluateState::Train => {
                 // Find the error values and update the weights.
-                let target = target_array(target_str);
+                let target = target_array(target_str, classes);
                 network.error(&target.view());
-                network.weight(&row, LEARN, momentum);
+                network.weight(&row, info.learn_rate, info.momentum);
             }
             EvaluateState::Test => {
                 // Continue the testing.
@@ -53,24 +104,69 @@ pub fn epoch(
 }
 
 // Create the network using some predefined layer sizes.
-pub fn create_network(hidden: usize) -> MultiLayer {
+pub fn create_network(input: usize, hidden: usize, output: usize, low: f32, high: f32) -> MultiLayer {
+    let storage = 1;
     let size = [
-        LayerSize::new(hidden, INPUT, STORAGE),
-        LayerSize::new(OUTPUT, hidden, STORAGE),
+        LayerSize::new(hidden, input, storage),
+        LayerSize::new(output, hidden, storage),
     ];
-    MultiLayer::new(&size[..], LOW, HIGH)
+    MultiLayer::new(&size, low, high)
 }
 
 
 /// Private
 
-// 
-fn create_random_index_fraction(size: usize, fraction: f32) {
+// Print the confusion matrix and accuracy.
+fn print_confusion(confusion: &Array2<u32>) -> f32 {
+    println!();
+    print_data::_print_matrix(&confusion.view(), "CONFUSION");
+    let correct = confusion.diag().sum();
+    let total = confusion.sum();
+    print_data::_print_total_error(correct, total);
 
+    correct as f32 / total as f32
+}
+
+// Creates a vector of indicies using only a fraction of the available data.
+fn create_random_index_fraction(
+    input: &Array1<String>, 
+    classes: &[&str], 
+    fraction: f32
+) -> Array1<usize> 
+{
+    let total = input.len();
+    
+    // Create vector of vectors to hold indicies of each class.
+    let class_len = classes.len();
+    let mut class_vec = Vec::with_capacity(class_len);
+    for _c in 0..class_len {
+        class_vec.push(Vec::with_capacity(total/class_len));
+    }
+
+    // For each input vector, find class and push index into that class's vector.
+    for i in 0..total {
+        class_vec[class_to_index(&input[i], classes).unwrap()].push(i);
+    }
+    
+    // Shuffle each class and then
+    // Grab the correct fraction of entries and add to final vector.
+    let mut rng = thread_rng();
+    let mut collect = Vec::new();
+    for class in class_vec.iter_mut() {
+        class.shuffle(&mut rng);
+        let fraction_index = (class.len() as f32 * fraction) as usize;
+        let slice = class[0..fraction_index].to_vec();
+        collect.push(slice);
+    }
+    
+    // Flatten the vector and shuffle its elements.
+    let mut vec = collect.into_iter().flatten().collect::<Vec<usize>>();
+    vec.shuffle(&mut rng);
+    Array1::<usize>::from_vec(vec)
 }
 
 // Creates a vector of indicies for randomizing the data.
-fn create_random_index(size: usize) -> Array1<usize> {
+fn _create_random_index(size: usize) -> Array1<usize> {
     let mut vec = Vec::with_capacity(size);
     for i in 0..size {
         vec.push(i);
@@ -80,7 +176,7 @@ fn create_random_index(size: usize) -> Array1<usize> {
 }
 
 // Finds the class that the model predicted.
-fn classify(output: &ArrayView1<f32>) -> String {
+fn classify(output: &ArrayView1<f32>, classes: &[&str]) -> String {
     // Find the largest output value.
     let mut index = 0;
     let mut value = 0.;
@@ -93,25 +189,23 @@ fn classify(output: &ArrayView1<f32>) -> String {
         }
     }
     //println!();
-    CLASS[index].to_string()
+    classes[index].to_string()
 }
 
 // Converts a class to an index value.
-fn class_to_index(target: &str) -> Result<usize, &str> {
-    //for (i, <item>) in CLASS.iter().enumerate().take(OUTPUT) {}
-    for i in 0..OUTPUT {
-        if target == CLASS[i] {
+fn class_to_index(target: &str, classes: &[&str]) -> Result<usize, String> {
+    for (i, class) in classes.iter().enumerate() {
+        if target == *class {
             return Ok(i);
         }
     }
-    Err("No Match.")
+    Err("No Match.".to_string())
 }
 
 // Returns the target value needed for error calculation.
-fn target_array(target: &str) -> Array1<f32> {
-    let mut target_arr = Array1::<f32>::from_elem(OUTPUT, 0.1);
-    
-    let i = class_to_index(target);
+fn target_array(target: &str, classes: &[&str]) -> Array1<f32> {
+    let mut target_arr = Array1::<f32>::from_elem(classes.len(), 0.1);
+    let i = class_to_index(target, classes);
     match i {
         Ok(o) => {
             target_arr[o] = 0.9;

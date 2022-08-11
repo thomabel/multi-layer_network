@@ -16,7 +16,7 @@ pub const OUTPUT:   usize   = 10;
 // Number of input nodes in the initial layer.
 pub const INPUT:    usize   = 784;
 // The amount of storage available for when using batching.
-pub const STORAGE:  usize   = 1;
+//pub const STORAGE:  usize   = 1;
 
 // Used for normalizing the data.
 pub const DIVISOR:  f32     = 255.;

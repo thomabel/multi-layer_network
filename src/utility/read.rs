@@ -1,8 +1,9 @@
 use ndarray::prelude::*;
 use csv::Reader;
 use std::error::Error;
+use crate::{Input, ReadResult};
 
-pub fn read(path: &str) -> Result<(Array2<f32>, Array1<String>), Box<dyn Error>> {
+pub fn read_csv(path: &str) -> Result<(Array2<f32>, Array1<String>), Box<dyn Error>> {
     let mut reader = Reader::from_path(path)?;
     let mut output = Vec::new();
     let mut target = Vec::new();
@@ -31,4 +32,23 @@ pub fn read(path: &str) -> Result<(Array2<f32>, Array1<String>), Box<dyn Error>>
     let target = 
         Array1::<String>::from_shape_vec(rows, target)?;
     Ok( (output, target) )
+}
+
+pub fn read_eval(path: &str, divisor: f32) -> Input {
+    evaluate(read_csv(path), divisor)
+}
+
+fn evaluate(result: ReadResult, divisor: f32) -> Input {
+    let input;
+    match result {
+        Ok(mut o) => {
+            // Normalize the data.
+            o.0 /= divisor;
+            input = o;
+        }
+        Err(e) => {
+            panic!("{}", e);
+        }
+    }
+    input
 }
