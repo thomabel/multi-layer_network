@@ -27,16 +27,12 @@ pub fn epoch_set(
 
         // TRAIN
         info.state = EvaluateState::Train;
-        train.confusion = Some(epoch(network, 
-                &input_train.0, &input_train.1, 
-                classes, info));
+        train.confusion = epoch(network, &input_train.0, &input_train.1, classes, info);
         train.accuracy[e] = print_confusion(train.confusion.as_ref().unwrap(), info.print);
 
         // TEST
         info.state = EvaluateState::Test;
-        test.confusion = Some(epoch(network, 
-                &input_test.0, &input_test.1, 
-                classes, info));
+        test.confusion = epoch(network, &input_test.0, &input_test.1, classes, info);
         test.accuracy[e] = print_confusion(test.confusion.as_ref().unwrap(), info.print);
     }
 
@@ -44,7 +40,7 @@ pub fn epoch_set(
 }
 
 // Trains the network over a single epoch and returns the resulting confusion matrix.
-pub fn epoch(network: &mut MultiLayer, input: &Array2<f32>, target: &Array1<String>, classes: &[&str], info: &Info) -> Array2<u32> {
+pub fn epoch(network: &mut MultiLayer, input: &Array2<f32>, target: &Array1<String>, classes: &[&str], info: &Info) -> Option<Array2<u32>> {
     // Create confusion matrix and random index array.
     let output = classes.len();
     let mut confusion = Array2::<u32>::zeros((output, output));
@@ -64,8 +60,6 @@ pub fn epoch(network: &mut MultiLayer, input: &Array2<f32>, target: &Array1<Stri
         let target_str = &target[index];
         let predict_str = &classify(&output, classes);
         if info.print { println!("[ {} ] => {}", target_str, predict_str); }
-        // Update the confusion matrix
-        confusion[[class_to_index(target_str, classes).unwrap(), class_to_index(predict_str, classes).unwrap()]] += 1;
         
         match info.state {
             EvaluateState::Train => {
@@ -75,12 +69,17 @@ pub fn epoch(network: &mut MultiLayer, input: &Array2<f32>, target: &Array1<Stri
                 network.weight(&row, info.learn_rate, info.momentum);
             }
             EvaluateState::Test => {
+                // Update the confusion matrix
+                confusion[[class_to_index(target_str, classes).unwrap(), class_to_index(predict_str, classes).unwrap()]] += 1;
                 // Continue the testing.
             }
         }
     }
 
-    confusion
+    match info.state {
+        EvaluateState::Train => None,
+        EvaluateState::Test => Some(confusion)
+    }
 }
 
 // Create the network using some predefined layer sizes.
@@ -109,12 +108,7 @@ fn print_confusion(confusion: &Array2<u32>, print: bool) -> f32 {
 }
 
 // Creates a vector of indicies using only a fraction of the available data.
-fn create_random_index_fraction(
-    input: &Array1<String>, 
-    classes: &[&str], 
-    fraction: f32
-) -> Array1<usize> 
-{
+fn create_random_index_fraction(input: &Array1<String>, classes: &[&str], fraction: f32) -> Array1<usize> {
     let total = input.len();
     
     // Create vector of vectors to hold indicies of each class.

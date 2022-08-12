@@ -34,42 +34,59 @@ fn main() {
     println!("Done.");
     
     // Test
-    test(&input_train, &input_test);
-
-    // Experiment 1: Hidden Nodes
-
-    // Experiment 2: Momentum
-
-    // Experiment 3: Inputs
-    
-
-    // End message.
-    println!("Ending Session.");
-}
-
-// Test
-fn test(input_train: &Input, input_test: &Input) {
-     // Create the network and data storage.
-    let mut network = train_test::create_network(
-        INPUT, HIDDEN[2], OUTPUT, LOW, HIGH
-    );
     let mut info = epoch::Info {
         epoch: EPOCH,
         state: train_test::EvaluateState::Train, 
         learn_rate: LEARN, 
         momentum: MOMENTUM[0], 
         fraction: TRAIN[0], 
-        print: true,
+        print: false,
     };
+    let hidden = HIDDEN[0];
 
-    let name = "Test 30".to_string();
-    let result = train_test::epoch_set(&mut network, input_train, input_test, &CLASS, &mut info);
-    record(&name, &result);
+    // Experiment 1: Hidden Nodes
+    for hidden_ in HIDDEN {
+        let name = format!("Hidden Nodes = {}", hidden_);
+        experiment(&name, &input_train, &input_test, &mut info, hidden_);
+    }
+
+    // Experiment 2: Momentum
+    for momentum in MOMENTUM {
+        // Don't retest default value.
+        if momentum == MOMENTUM[0] {
+            continue;
+        }
+        let name = format!("Momentum = {:.3}", momentum);
+        info.momentum = momentum;
+        experiment(&name, &input_train, &input_test, &mut info, hidden);
+    }
+
+    // Experiment 3: Inputs
+    info.momentum = MOMENTUM[0];
+    for fraction in TRAIN {
+        // Don't retest.
+        if fraction == TRAIN[0] {
+            continue;
+        }
+        let name = format!("Fraction = {:.3}", fraction);
+        info.fraction = fraction;
+        experiment(&name, &input_train, &input_test, &mut info, hidden);
+    }
+
+    // End message.
+    println!("Ending Session.");
+}
+
+fn experiment(name: &str, input_train: &Input, input_test: &Input, info: &mut epoch::Info, hidden: usize) {
+    let mut network = train_test::create_network
+        ( INPUT, hidden, OUTPUT, LOW, HIGH );
+    let result = train_test::epoch_set(&mut network, input_train, input_test, &CLASS, info);
+    record(name, &result);
 }
 
 // Creates an graph image and .csv text file recording the results.
 fn record(name: &str, result: &(epoch::Results, epoch::Results)) {
-    match visuals::accuracy_graph_png(name, &result.1) {
+    match visuals::accuracy_graph_png(name, result) {
         Ok(_o) => {
             println!("Created image for {}.", name);
         }
