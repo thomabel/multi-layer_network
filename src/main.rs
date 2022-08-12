@@ -9,7 +9,7 @@ mod network;
 use std::error::Error;
 use ndarray::prelude::*;
 use crate::utility::constants::*;
-use crate::utility::{read, epoch, visuals};
+use crate::utility::{read, epoch, visuals, write};
 use crate::network::train_test;
 
 type Matrix = Array2<f32>;
@@ -33,31 +33,8 @@ fn main() {
     let input_test = read::read_eval(path[index_test], DIVISOR);
     println!("Done.");
     
-    // Create the network and data storage.
-    let hidden = HIDDEN[2];
-    let mut network = train_test::create_network(INPUT, hidden, OUTPUT, LOW, HIGH);
-    let mut info = epoch::Info {
-        epoch: EPOCH,
-        state: train_test::EvaluateState::Train, 
-        learn_rate: LEARN, 
-        momentum: MOMENTUM[0], 
-        fraction: TRAIN[0], 
-        print: false,
-    };
-
     // Test
-    let result = train_test::epoch_set(&mut network, input_train, input_test, &CLASS, &mut info);
-    let title = "Test 30".to_string();
-    match visuals::accuracy_graph_png(&result.1, &title) {
-        Ok(_o) => {
-            // Good
-            println!("Created image for {}.", title);
-        }
-        Err(e) => {
-            println!("{}", e);
-            // Not good but okay
-        }
-    }
+    test(&input_train, &input_test);
 
     // Experiment 1: Hidden Nodes
 
@@ -68,4 +45,44 @@ fn main() {
 
     // End message.
     println!("Ending Session.");
+}
+
+// Test
+fn test(input_train: &Input, input_test: &Input) {
+     // Create the network and data storage.
+    let mut network = train_test::create_network(
+        INPUT, HIDDEN[2], OUTPUT, LOW, HIGH
+    );
+    let mut info = epoch::Info {
+        epoch: EPOCH,
+        state: train_test::EvaluateState::Train, 
+        learn_rate: LEARN, 
+        momentum: MOMENTUM[0], 
+        fraction: TRAIN[0], 
+        print: true,
+    };
+
+    let name = "Test 30".to_string();
+    let result = train_test::epoch_set(&mut network, input_train, input_test, &CLASS, &mut info);
+    record(&name, &result);
+}
+
+// Creates an graph image and .csv text file recording the results.
+fn record(name: &str, result: &(epoch::Results, epoch::Results)) {
+    match visuals::accuracy_graph_png(name, &result.1) {
+        Ok(_o) => {
+            println!("Created image for {}.", name);
+        }
+        Err(e) => {
+            println!("{}", e);
+        }
+    }
+    match write::write_csv(name, &result.1) {
+        Ok(_o) => {
+            println!("Created text file for {}.", name);
+        }
+        Err(e) => {
+            println!("{}", e);
+        }
+    }
 }

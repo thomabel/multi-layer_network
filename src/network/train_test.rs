@@ -12,8 +12,8 @@ pub enum EvaluateState { Train, Test }
 // Trains and tests a network using one set of parameters.
 pub fn epoch_set(
     network: &mut MultiLayer, 
-    input_train: Input, 
-    input_test: Input, 
+    input_train: &Input, 
+    input_test: &Input, 
     classes: &[&str],
     info: &mut Info) -> (Results, Results)
 {

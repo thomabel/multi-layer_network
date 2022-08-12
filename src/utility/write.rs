@@ -1,5 +1,4 @@
-use ndarray::prelude::*;
-use csv::Writer;
+use csv::WriterBuilder;
 use crate::utility::epoch;
 use std::{error::Error, fmt};
 
@@ -12,18 +11,24 @@ impl fmt::Display for WriteError {
     }
 }
 
-pub fn write_csv(path: &str, input: &epoch::Results) -> Result<(), Box<dyn Error>> {
-    
+pub fn write_csv(name: &str, input: &epoch::Results) -> Result<(), Box<dyn Error>> {
+    // Test to make sure the confusion matrix exists.
     let confusion = match &input.confusion {
         Some(s) => {s}
         None => { return Err(Box::new(WriteError("Cannot find confusion matrix".to_string()))); }
     };
     
-    let mut writer = Writer::from_path(path)?;
+    // Configure writer
+    let path = format!("./confusion/{}.csv", name);
+    let mut writer = WriterBuilder::new()
+        .has_headers(false)
+        .from_path(path)?;
 
+    // Write to the file
     for row in confusion.rows() {
-        //writer.write_record(row.into_iter());
+        writer.write_record(row.iter().map(|x| x.to_string()))?;
     }
+    writer.flush()?;
 
     Ok(())
 }

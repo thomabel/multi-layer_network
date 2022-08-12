@@ -2,8 +2,8 @@
 use plotters::prelude::*;
 use crate::utility::epoch::Results;
 
-pub fn accuracy_graph_png(result: &Results, title: &str) -> Result<(), Box<dyn std::error::Error>> {
-    let path = format!("./visuals/{}.png", title);
+pub fn accuracy_graph_png(name: &str, result: &Results) -> Result<(), Box<dyn std::error::Error>> {
+    let path = format!("./visuals/{}.png", name);
     let root = BitMapBackend::new(&path, (640, 480)).into_drawing_area();
     root.fill(&WHITE)?;
 
@@ -12,7 +12,7 @@ pub fn accuracy_graph_png(result: &Results, title: &str) -> Result<(), Box<dyn s
     let y_spec = 0.0..1.0f32;
 
     let mut chart = ChartBuilder::on(&root)
-        .caption(&title, ("sans-serif", 50).into_font())
+        .caption(&name, ("sans-serif", 50).into_font())
         .margin(5)
         .x_label_area_size(30)
         .y_label_area_size(30)
