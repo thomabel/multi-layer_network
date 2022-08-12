@@ -32,7 +32,12 @@ fn main() {
     let input_train = read::read_eval(path[index_train], DIVISOR);
     let input_test = read::read_eval(path[index_test], DIVISOR);
     println!("Done.");
-    
+    experiment_set(&input_train, &input_test);
+    println!("Ending Session.");
+}
+
+// Performs the set of experiments for the assignment.
+fn experiment_set(input_train: &Input, input_test: &Input) {
     // Test
     let mut info = epoch::Info {
         epoch: EPOCH,
@@ -72,11 +77,9 @@ fn main() {
         info.fraction = fraction;
         experiment(&name, &input_train, &input_test, &mut info, hidden);
     }
-
-    // End message.
-    println!("Ending Session.");
 }
 
+// Performs a single experiment given starting conditions.
 fn experiment(name: &str, input_train: &Input, input_test: &Input, info: &mut epoch::Info, hidden: usize) {
     let mut network = train_test::create_network
         ( INPUT, hidden, OUTPUT, LOW, HIGH );
