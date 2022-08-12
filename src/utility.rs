@@ -3,3 +3,4 @@ pub mod epoch;
 pub mod print_data;
 pub mod read;
 pub mod visuals;
+pub mod write;

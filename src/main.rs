@@ -9,9 +9,8 @@ mod network;
 use std::error::Error;
 use ndarray::prelude::*;
 use crate::utility::constants::*;
+use crate::utility::{read, epoch, visuals};
 use crate::network::train_test;
-use crate::utility::read;
-use crate::utility::epoch;
 
 type Matrix = Array2<f32>;
 type Target = Array1<String>;
@@ -43,11 +42,24 @@ fn main() {
         learn_rate: LEARN, 
         momentum: MOMENTUM[0], 
         fraction: TRAIN[0], 
-        print: true,
+        print: false,
     };
 
+    // Test
+    let result = train_test::epoch_set(&mut network, input_train, input_test, &CLASS, &mut info);
+    let title = "Test 30".to_string();
+    match visuals::accuracy_graph_png(&result.1, &title) {
+        Ok(_o) => {
+            // Good
+            println!("Created image for {}.", title);
+        }
+        Err(e) => {
+            println!("{}", e);
+            // Not good but okay
+        }
+    }
+
     // Experiment 1: Hidden Nodes
-    train_test::epoch_set(&mut network, input_train, input_test, &CLASS, &mut info);
 
     // Experiment 2: Momentum
 

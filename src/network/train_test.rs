@@ -30,14 +30,14 @@ pub fn epoch_set(
         train.confusion = Some(epoch(network, 
                 &input_train.0, &input_train.1, 
                 classes, info));
-        train.accuracy[e] = print_confusion(train.confusion.as_ref().unwrap());
+        train.accuracy[e] = print_confusion(train.confusion.as_ref().unwrap(), info.print);
 
         // TEST
         info.state = EvaluateState::Test;
         test.confusion = Some(epoch(network, 
                 &input_test.0, &input_test.1, 
                 classes, info));
-        test.accuracy[e] = print_confusion(test.confusion.as_ref().unwrap());
+        test.accuracy[e] = print_confusion(test.confusion.as_ref().unwrap(), info.print);
     }
 
     (train, test)
@@ -97,13 +97,14 @@ pub fn create_network(input: usize, hidden: usize, output: usize, low: f32, high
 /// Private
 
 // Print the confusion matrix and accuracy.
-fn print_confusion(confusion: &Array2<u32>) -> f32 {
-    println!();
-    print_data::_print_matrix(&confusion.view(), "CONFUSION");
+fn print_confusion(confusion: &Array2<u32>, print: bool) -> f32 {
     let correct = confusion.diag().sum();
     let total = confusion.sum();
-    print_data::_print_total_error(correct, total);
-
+    if print {
+        println!();
+        print_data::_print_matrix(&confusion.view(), "CONFUSION");
+        print_data::_print_total_error(correct, total);
+    }
     correct as f32 / total as f32
 }
 

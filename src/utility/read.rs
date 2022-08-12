@@ -1,9 +1,8 @@
 use ndarray::prelude::*;
 use csv::Reader;
-use std::error::Error;
 use crate::{Input, ReadResult};
 
-pub fn read_csv(path: &str) -> Result<(Array2<f32>, Array1<String>), Box<dyn Error>> {
+pub fn read_csv(path: &str) -> ReadResult {
     let mut reader = Reader::from_path(path)?;
     let mut output = Vec::new();
     let mut target = Vec::new();
