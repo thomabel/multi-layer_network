@@ -52,7 +52,7 @@ fn experiment_set(input_train: &Input, input_test: &Input) {
     // Experiment 1: Hidden Nodes
     for hidden_ in HIDDEN {
         let name = format!("Hidden Nodes = {}", hidden_);
-        experiment(&name, &input_train, &input_test, &mut info, hidden_);
+        experiment(&name, input_train, input_test, &mut info, hidden_);
     }
 
     // Experiment 2: Momentum
@@ -63,7 +63,7 @@ fn experiment_set(input_train: &Input, input_test: &Input) {
         }
         let name = format!("Momentum = {:.3}", momentum);
         info.momentum = momentum;
-        experiment(&name, &input_train, &input_test, &mut info, hidden);
+        experiment(&name, input_train, input_test, &mut info, hidden);
     }
 
     // Experiment 3: Inputs
@@ -75,7 +75,7 @@ fn experiment_set(input_train: &Input, input_test: &Input) {
         }
         let name = format!("Fraction = {:.3}", fraction);
         info.fraction = fraction;
-        experiment(&name, &input_train, &input_test, &mut info, hidden);
+        experiment(&name, input_train, input_test, &mut info, hidden);
     }
 }
 
