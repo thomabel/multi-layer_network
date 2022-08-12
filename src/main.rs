@@ -55,12 +55,13 @@ fn experiment_set(input_train: &Input, input_test: &Input) {
     };
     let hidden = HIDDEN[0];
 
+    /*
     // Experiment 1: Hidden Nodes
     for hidden_ in HIDDEN {
         let name = format!("Hidden Nodes = {}", hidden_);
         experiment(&name, input_train, input_test, &info, hidden_);
     }
-
+    
     // Experiment 2: Momentum
     for momentum in MOMENTUM {
         // Don't retest default value.
@@ -71,7 +72,8 @@ fn experiment_set(input_train: &Input, input_test: &Input) {
         info.momentum = momentum;
         experiment(&name, input_train, input_test, &info, hidden);
     }
-
+    
+    */
     // Experiment 3: Inputs
     info.momentum = MOMENTUM[0];
     for fraction in TRAIN {

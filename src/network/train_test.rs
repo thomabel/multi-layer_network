@@ -55,7 +55,7 @@ pub fn epoch(network: &mut MultiLayer, input: &Array2<f32>, target: &Array1<Stri
 
     // Feed each input into the network and update the weights.
     // Completing this is considered 1 epoch.
-    for i in 0..target.len() {
+    for i in 0..input_random.len() {
         // Set-up
         if info.print { print!("{:>7}: ", i); }
         let index = input_random[i];
@@ -103,7 +103,7 @@ pub fn create_network(input: usize, hidden: usize, output: usize, low: f32, high
 
 /// Private
 
-// Print the confusion matrix and accuracy.
+// Print the confusion matrix and accuracy. Returns accuracy.
 fn print_confusion(confusion: &Array2<u32>, print: bool) -> f32 {
     let correct = confusion.diag().sum();
     let total = confusion.sum();
