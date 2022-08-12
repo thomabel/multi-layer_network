@@ -15,7 +15,7 @@ pub fn epoch_set(
     input_train: &Input, 
     input_test: &Input, 
     classes: &[&str],
-    info: &mut Info) -> (Results, Results)
+    info: &Info) -> (Results, Results)
 {
     // Results needed for final evaluation of model.
     let mut train = Results::new(info.epoch);
@@ -26,13 +26,11 @@ pub fn epoch_set(
         println!("EPOCH: {}", e);
 
         // TRAIN
-        info.state = EvaluateState::Train;
-        train.confusion = epoch(network, &input_train.0, &input_train.1, classes, info);
+        train.confusion = epoch(network, &input_train.0, &input_train.1, classes, info, EvaluateState::Train);
         train.accuracy[e] = print_confusion(train.confusion.as_ref().unwrap(), info.print);
 
         // TEST
-        info.state = EvaluateState::Test;
-        test.confusion = epoch(network, &input_test.0, &input_test.1, classes, info);
+        test.confusion = epoch(network, &input_test.0, &input_test.1, classes, info, EvaluateState::Test);
         test.accuracy[e] = print_confusion(test.confusion.as_ref().unwrap(), info.print);
     }
 
@@ -40,7 +38,7 @@ pub fn epoch_set(
 }
 
 // Trains the network over a single epoch and returns the resulting confusion matrix.
-pub fn epoch(network: &mut MultiLayer, input: &Array2<f32>, target: &Array1<String>, classes: &[&str], info: &Info) -> Option<Array2<u32>> {
+pub fn epoch(network: &mut MultiLayer, input: &Array2<f32>, target: &Array1<String>, classes: &[&str], info: &Info, state: EvaluateState) -> Option<Array2<u32>> {
     // Create confusion matrix and random index array.
     let output = classes.len();
     let mut confusion = Array2::<u32>::zeros((output, output));
@@ -61,7 +59,7 @@ pub fn epoch(network: &mut MultiLayer, input: &Array2<f32>, target: &Array1<Stri
         let predict_str = &classify(&output, classes);
         if info.print { println!("[ {} ] => {}", target_str, predict_str); }
         
-        match info.state {
+        match state {
             EvaluateState::Train => {
                 // Find the error values and update the weights.
                 let target = target_array(target_str, classes);
@@ -76,7 +74,7 @@ pub fn epoch(network: &mut MultiLayer, input: &Array2<f32>, target: &Array1<Stri
         }
     }
 
-    match info.state {
+    match state {
         EvaluateState::Train => None,
         EvaluateState::Test => Some(confusion)
     }

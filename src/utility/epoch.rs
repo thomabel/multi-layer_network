@@ -1,7 +1,5 @@
-use crate::network::train_test::EvaluateState;
 pub struct Info {
     pub epoch: usize,
-    pub state: EvaluateState, 
     pub learn_rate: f32,
     pub momentum: f32,
     pub fraction: f32,

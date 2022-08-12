@@ -20,8 +20,8 @@ type ReadResult = Result<Input, Box<dyn Error>>;
 /// Main functions.
 fn main() {
     // Read the files.
-    let index_train: usize = 0;
-    let index_test: usize = 0;
+    let index_train: usize = 2;
+    let index_test: usize = 1;
     let path = [
         "./data/mnist_test_short.csv",
         "./data/mnist_test.csv",
@@ -41,7 +41,6 @@ fn experiment_set(input_train: &Input, input_test: &Input) {
     // Test
     let mut info = epoch::Info {
         epoch: EPOCH,
-        state: train_test::EvaluateState::Train, 
         learn_rate: LEARN, 
         momentum: MOMENTUM[0], 
         fraction: TRAIN[0], 
@@ -52,7 +51,7 @@ fn experiment_set(input_train: &Input, input_test: &Input) {
     // Experiment 1: Hidden Nodes
     for hidden_ in HIDDEN {
         let name = format!("Hidden Nodes = {}", hidden_);
-        experiment(&name, input_train, input_test, &mut info, hidden_);
+        experiment(&name, input_train, input_test, &info, hidden_);
     }
 
     // Experiment 2: Momentum
@@ -63,7 +62,7 @@ fn experiment_set(input_train: &Input, input_test: &Input) {
         }
         let name = format!("Momentum = {:.3}", momentum);
         info.momentum = momentum;
-        experiment(&name, input_train, input_test, &mut info, hidden);
+        experiment(&name, input_train, input_test, &info, hidden);
     }
 
     // Experiment 3: Inputs
@@ -75,12 +74,12 @@ fn experiment_set(input_train: &Input, input_test: &Input) {
         }
         let name = format!("Fraction = {:.3}", fraction);
         info.fraction = fraction;
-        experiment(&name, input_train, input_test, &mut info, hidden);
+        experiment(&name, input_train, input_test, &info, hidden);
     }
 }
 
 // Performs a single experiment given starting conditions.
-fn experiment(name: &str, input_train: &Input, input_test: &Input, info: &mut epoch::Info, hidden: usize) {
+fn experiment(name: &str, input_train: &Input, input_test: &Input, info: &epoch::Info, hidden: usize) {
     let mut network = train_test::create_network
         ( INPUT, hidden, OUTPUT, LOW, HIGH );
     let result = train_test::epoch_set(&mut network, input_train, input_test, &CLASS, info);

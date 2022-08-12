@@ -10,7 +10,7 @@ pub const MOMENTUM: [f32; 4]     = [0.9, 0.5, 0.25, 0.0];
 pub const TRAIN:    [f32; 3]     = [1.0, 0.5, 0.25];
 
 // The number of epochs to train for
-pub const EPOCH:    usize   = 5;
+pub const EPOCH:    usize   = 50;
 // Number of output nodes in the final layer.
 pub const OUTPUT:   usize   = 10;
 // Number of input nodes in the initial layer.
