@@ -7,8 +7,10 @@ mod utility;
 mod network;
 
 use std::error::Error;
+use chronometer::Chronometer;
 use ndarray::prelude::*;
 use crate::utility::constants::*;
+use crate::utility::print_data::_print_time;
 use crate::utility::{read, epoch, visuals, write};
 use crate::network::train_test;
 
@@ -19,13 +21,15 @@ type ReadResult = Result<Input, Box<dyn Error>>;
 
 /// Main functions.
 fn main() {
+    let mut watch = Chronometer::new();
+    watch.start();
     // Read the files.
     let index_train: usize = 2;
-    let index_test: usize = 1;
+    let index_test: usize = 2;
     let path = [
-        "./data/mnist_test_short.csv",
-        "./data/mnist_test.csv",
         "./data/mnist_train.csv",
+        "./data/mnist_test.csv",
+        "./data/mnist_test_short.csv",
         "./data/test.csv",
     ];
     print!("Reading data, please be patient... ");
@@ -33,6 +37,9 @@ fn main() {
     let input_test = read::read_eval(path[index_test], DIVISOR);
     println!("Done.");
     experiment_set(&input_train, &input_test);
+    
+    watch.pause();
+    _print_time("Total", &watch);
     println!("Ending Session.");
 }
 

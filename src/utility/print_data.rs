@@ -1,5 +1,6 @@
 // Printing functions for debugging
 use ndarray::prelude::*;
+use chronometer::Chronometer;
 
 pub fn _percentage(num: u32, denom: u32) -> String {
     let percent = num as f64 / denom as f64 * 100.0;
@@ -27,4 +28,8 @@ pub fn _print_vector<T: std::fmt::Debug>(input: &ArrayView1<T>, name: &str) {
         print!("{:.0?}, ", i);
     }
     println!();
+}
+
+pub fn _print_time(name: &str, watch: &Chronometer) {
+    println!("{} Elapsed: {:.3} s", name, watch.duration().unwrap().as_secs_f32());
 }

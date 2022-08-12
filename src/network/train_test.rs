@@ -1,11 +1,13 @@
 use ndarray::prelude::*;
 use rand::thread_rng;
 use rand::{self, seq::SliceRandom};
+use chronometer::Chronometer;
+
 use crate::Input;
 use crate::network::layer_size::LayerSize;
 use crate::network::multi_layer::MultiLayer;
 use crate::utility::epoch::{Info, Results};
-use crate::utility::print_data;
+use crate::utility::print_data::{self, _print_time};
 
 /// Public
 pub enum EvaluateState { Train, Test }
@@ -20,20 +22,26 @@ pub fn epoch_set(
     // Results needed for final evaluation of model.
     let mut train = Results::new(info.epoch);
     let mut test = Results::new(info.epoch);
+    let mut watch = Chronometer::new();
+    watch.start();
 
     // Train and test the network over a number of epochs.
     for e in 0..info.epoch {
         println!("EPOCH: {}", e);
-
+        
         // TRAIN
         train.confusion = epoch(network, &input_train.0, &input_train.1, classes, info, EvaluateState::Train);
         train.accuracy[e] = print_confusion(train.confusion.as_ref().unwrap(), info.print);
+        _print_time("train ->", &watch);
 
         // TEST
         test.confusion = epoch(network, &input_test.0, &input_test.1, classes, info, EvaluateState::Test);
         test.accuracy[e] = print_confusion(test.confusion.as_ref().unwrap(), info.print);
+        _print_time("test ->", &watch);
     }
 
+    watch.pause();
+    _print_time("end ->", &watch);
     (train, test)
 }
 
@@ -58,6 +66,8 @@ pub fn epoch(network: &mut MultiLayer, input: &Array2<f32>, target: &Array1<Stri
         let target_str = &target[index];
         let predict_str = &classify(&output, classes);
         if info.print { println!("[ {} ] => {}", target_str, predict_str); }
+        // Update the confusion matrix
+        confusion[[class_to_index(target_str, classes).unwrap(), class_to_index(predict_str, classes).unwrap()]] += 1;
         
         match state {
             EvaluateState::Train => {
@@ -67,17 +77,17 @@ pub fn epoch(network: &mut MultiLayer, input: &Array2<f32>, target: &Array1<Stri
                 network.weight(&row, info.learn_rate, info.momentum);
             }
             EvaluateState::Test => {
-                // Update the confusion matrix
-                confusion[[class_to_index(target_str, classes).unwrap(), class_to_index(predict_str, classes).unwrap()]] += 1;
                 // Continue the testing.
             }
         }
     }
-
+    /*
     match state {
         EvaluateState::Train => None,
         EvaluateState::Test => Some(confusion)
     }
+    */
+    Some(confusion)
 }
 
 // Create the network using some predefined layer sizes.
