@@ -24,8 +24,8 @@ fn main() {
     let mut watch = Chronometer::new();
     watch.start();
     // Read the files.
-    let index_train: usize = 2;
-    let index_test: usize = 2;
+    let index_train: usize = 0;
+    let index_test: usize = 1;
     let path = [
         "./data/mnist_train.csv",
         "./data/mnist_test.csv",
@@ -46,16 +46,17 @@ fn main() {
 // Performs the set of experiments for the assignment.
 fn experiment_set(input_train: &Input, input_test: &Input) {
     // Test
+    let train_factor = 0.1;
     let mut info = epoch::Info {
         epoch: EPOCH,
         learn_rate: LEARN, 
         momentum: MOMENTUM[0], 
-        fraction: TRAIN[0], 
+        fraction: TRAIN[0] * train_factor, 
         print: false,
     };
     let hidden = HIDDEN[0];
 
-    /*
+    
     // Experiment 1: Hidden Nodes
     for hidden_ in HIDDEN {
         let name = format!("Hidden Nodes = {}", hidden_);
@@ -73,7 +74,7 @@ fn experiment_set(input_train: &Input, input_test: &Input) {
         experiment(&name, input_train, input_test, &info, hidden);
     }
     
-    */
+    
     // Experiment 3: Inputs
     info.momentum = MOMENTUM[0];
     for fraction in TRAIN {
@@ -82,7 +83,7 @@ fn experiment_set(input_train: &Input, input_test: &Input) {
             continue;
         }
         let name = format!("Fraction = {:.3}", fraction);
-        info.fraction = fraction;
+        info.fraction = fraction * train_factor;
         experiment(&name, input_train, input_test, &info, hidden);
     }
 }
